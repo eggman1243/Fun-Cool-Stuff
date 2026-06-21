@@ -1,0 +1,117 @@
+(() => {
+  const id = "page_downloader_gui";
+
+  const old = document.getElementById(id);
+  if (old) old.remove();
+
+  const panel = document.createElement("div");
+  panel.id = id;
+  panel.style.position = "fixed";
+  panel.style.top = "20px";
+  panel.style.left = "20px";
+  panel.style.zIndex = "2147483647";
+  panel.style.width = "200px";
+  panel.style.background = "#111";
+  panel.style.color = "#fff";
+  panel.style.border = "1px solid #333";
+  panel.style.borderRadius = "10px";
+  panel.style.boxShadow = "0 10px 30px rgba(0,0,0,0.5)";
+  panel.style.fontFamily = "sans-serif";
+  panel.style.userSelect = "none";
+
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
+  header.style.padding = "8px";
+  header.style.background = "#1a1a1a";
+  header.style.cursor = "move";
+
+  const title = document.createElement("div");
+  title.textContent = "Downloader";
+  title.style.fontSize = "12px";
+  title.style.fontWeight = "600";
+
+  const close = document.createElement("div");
+  close.textContent = "✕";
+  close.style.cursor = "pointer";
+  close.style.fontSize = "12px";
+
+  header.appendChild(title);
+  header.appendChild(close);
+
+  const body = document.createElement("div");
+  body.style.padding = "10px";
+
+  const btn = document.createElement("button");
+  btn.textContent = "Download HTML";
+  btn.style.width = "100%";
+  btn.style.padding = "8px";
+  btn.style.border = "none";
+  btn.style.borderRadius = "6px";
+  btn.style.cursor = "pointer";
+  btn.style.background = "#2a2a2a";
+  btn.style.color = "#fff";
+
+  body.appendChild(btn);
+
+  panel.appendChild(header);
+  panel.appendChild(body);
+  document.body.appendChild(panel);
+
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  header.addEventListener("mousedown", (e) => {
+    dragging = true;
+    const r = panel.getBoundingClientRect();
+    offsetX = e.clientX - r.left;
+    offsetY = e.clientY - r.top;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    panel.style.left = e.clientX - offsetX + "px";
+    panel.style.top = e.clientY - offsetY + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    dragging = false;
+  });
+
+  close.onclick = () => panel.remove();
+
+  function safeFileName(name) {
+    name = (name || "page")
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const max = 80;
+    if (name.length > max) {
+      name = name.slice(0, max).trim() + "_truncated";
+    }
+
+    return name;
+  }
+
+  btn.onclick = () => {
+    const clone = document.documentElement.cloneNode(true);
+    const injected = clone.querySelector("#" + id);
+    if (injected) injected.remove();
+
+    const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = safeFileName(document.title) + ".html";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  };
+})();
