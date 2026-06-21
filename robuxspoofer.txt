@@ -1,0 +1,224 @@
+(function () {
+    const KEY_VALUE = "fakeRobuxValue";
+    const KEY_MIN = "fakeRobuxMin";
+    const KEY_POS = "fakeRobuxPos";
+    const KEY_OPACITY = "fakeRobuxOpacity";
+    const selectors = [
+        'span[rbx-amount]',
+        '.rbx-text-navbar-right',
+        '#nav-robux-balance',
+        '.currency-robux'
+    ];
+    function applyFake(v) {
+        if (!v) return;
+        selectors.forEach(sel => {
+            document.querySelectorAll(sel).forEach(el => {
+                el.textContent = v;
+            });
+        });
+    }
+    function createUI() {
+        if (document.getElementById("fake-robux-panel")) return;
+        const box = document.createElement("div");
+        box.id = "fake-robux-panel";
+        box.style.position = "fixed";
+        box.style.top = "20px";
+        box.style.right = "20px";
+        box.style.zIndex = "999999";
+        box.style.background = "#fff";
+        box.style.padding = "0";
+        box.style.borderRadius = "6px";
+        box.style.color = "#000";
+        box.style.fontFamily = "Arial, sans-serif";
+        box.style.width = "220px";
+        box.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
+        box.style.userSelect = "none";
+        const header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.alignItems = "center";
+        header.style.justifyContent = "space-between";
+        header.style.padding = "6px 8px";
+        header.style.cursor = "move";
+        header.style.background = "#0d6efd";
+        header.style.color = "#fff";
+        header.style.borderTopLeftRadius = "6px";
+        header.style.borderTopRightRadius = "6px";
+        const title = document.createElement("span");
+        title.textContent = "Fake Robux";
+        title.style.fontSize = "13px";
+        const btnWrap = document.createElement("div");
+        const minBtn = document.createElement("button");
+        minBtn.textContent = "–";
+        minBtn.style.marginRight = "4px";
+        [minBtn].forEach(b => {
+            b.style.width = "20px";
+            b.style.height = "20px";
+            b.style.padding = "0";
+            b.style.border = "none";
+            b.style.borderRadius = "3px";
+            b.style.cursor = "pointer";
+            b.style.background = "#0b5ed7";
+            b.style.color = "#fff";
+            b.style.fontSize = "12px";
+        });
+        const closeBtn = document.createElement("button");
+        closeBtn.textContent = "x";
+        [closeBtn].forEach(b => {
+            b.style.width = "20px";
+            b.style.height = "20px";
+            b.style.padding = "0";
+            b.style.border = "none";
+            b.style.borderRadius = "3px";
+            b.style.cursor = "pointer";
+            b.style.background = "#bb2d3b";
+            b.style.color = "#fff";
+            b.style.fontSize = "12px";
+        });
+        btnWrap.appendChild(minBtn);
+        btnWrap.appendChild(closeBtn);
+        header.appendChild(title);
+        header.appendChild(btnWrap);
+        const body = document.createElement("div");
+        body.style.padding = "10px";
+        body.style.display = "block";
+        const label = document.createElement("div");
+        label.textContent = "Amount:";
+        label.style.fontSize = "12px";
+        label.style.marginBottom = "4px";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.style.width = "100%";
+        input.style.padding = "5px";
+        input.style.marginBottom = "6px";
+        input.style.border = "1px solid #ccc";
+        input.style.borderRadius = "4px";
+        input.style.fontSize = "12px";
+        const warn = document.createElement("div");
+        warn.style.color = "red";
+        warn.style.fontSize = "11px";
+        warn.style.height = "14px";
+        warn.style.marginBottom = "6px";
+        const applyBtn = document.createElement("button");
+        applyBtn.textContent = "Apply";
+        applyBtn.style.width = "100%";
+        applyBtn.style.padding = "6px";
+        applyBtn.style.border = "none";
+        applyBtn.style.borderRadius = "4px";
+        applyBtn.style.background = "#198754";
+        applyBtn.style.color = "#fff";
+        applyBtn.style.cursor = "pointer";
+        applyBtn.style.fontSize = "13px";
+        const opacityLabel = document.createElement("div");
+        opacityLabel.textContent = "Transparency:";
+        opacityLabel.style.fontSize = "12px";
+        opacityLabel.style.marginTop = "8px";
+        const opacitySlider = document.createElement("input");
+        opacitySlider.type = "range";
+        opacitySlider.min = "20";
+        opacitySlider.max = "100";
+        opacitySlider.value = sessionStorage.getItem(KEY_OPACITY) || "100";
+        opacitySlider.style.width = "100%";
+        opacitySlider.style.marginTop = "4px";
+        body.appendChild(label);
+        body.appendChild(input);
+        body.appendChild(warn);
+        body.appendChild(applyBtn);
+        body.appendChild(opacityLabel);
+        body.appendChild(opacitySlider);
+        box.appendChild(header);
+        box.appendChild(body);
+        document.body.appendChild(box);
+        box.style.opacity = (opacitySlider.value / 100).toString();
+        const saved = sessionStorage.getItem(KEY_VALUE);
+        if (saved) input.value = saved;
+        const savedMin = sessionStorage.getItem(KEY_MIN);
+        if (savedMin === "1") body.style.display = "none";
+        const savedPos = sessionStorage.getItem(KEY_POS);
+        if (savedPos) {
+            try {
+                const p = JSON.parse(savedPos);
+                box.style.left = p.x + "px";
+                box.style.top = p.y + "px";
+                box.style.right = "auto";
+            } catch (e) {}
+        }
+        input.addEventListener("input", function () {
+            this.value = this.value.replace(/[^0-9,]/g, "");
+        });
+        let cooldown = false;
+        applyBtn.onclick = function () {
+            if (cooldown) return;
+            let v = input.value.trim().replace(/,/g, "");
+            if (!v || isNaN(v)) return;
+            v = Number(v).toLocaleString();
+            const current = sessionStorage.getItem(KEY_VALUE);
+            if (current === v) {
+                warn.textContent = "Already set to this value";
+                setTimeout(() => warn.textContent = "", 1500);
+                return;
+            }
+            warn.textContent = "";
+            sessionStorage.setItem(KEY_VALUE, v);
+            input.value = v;
+            applyFake(v);
+            cooldown = true;
+            applyBtn.style.opacity = "0.5";
+            setTimeout(() => {
+                cooldown = false;
+                applyBtn.style.opacity = "1";
+            }, 1000);
+        };
+        opacitySlider.oninput = function () {
+            const val = this.value;
+            box.style.opacity = (val / 100).toString();
+            sessionStorage.setItem(KEY_OPACITY, val);
+        };
+        minBtn.onclick = function () {
+            if (body.style.display === "none") {
+                body.style.display = "block";
+                sessionStorage.setItem(KEY_MIN, "0");
+            } else {
+                body.style.display = "none";
+                sessionStorage.setItem(KEY_MIN, "1");
+            }
+        };
+        closeBtn.onclick = function () {
+            sessionStorage.removeItem(KEY_VALUE);
+            sessionStorage.removeItem(KEY_MIN);
+            sessionStorage.removeItem(KEY_POS);
+            sessionStorage.removeItem(KEY_OPACITY);
+            box.remove();
+        };
+        let dragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        header.addEventListener("mousedown", function (e) {
+            dragging = true;
+            const rect = box.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            box.style.right = "auto";
+        });
+        document.addEventListener("mousemove", function (e) {
+            if (!dragging) return;
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+            box.style.left = x + "px";
+            box.style.top = y + "px";
+        });
+        document.addEventListener("mouseup", function () {
+            if (!dragging) return;
+            dragging = false;
+            const rect = box.getBoundingClientRect();
+            const pos = { x: rect.left, y: rect.top };
+            sessionStorage.setItem(KEY_POS, JSON.stringify(pos));
+        });
+    }
+    createUI();
+    const initial = sessionStorage.getItem(KEY_VALUE);
+    if (initial) setTimeout(() => applyFake(initial), 200);
+    setInterval(() => {
+        const v = sessionStorage.getItem(KEY_VALUE);
+        if (v) applyFake(v);
+    }, 1500);
+})();
