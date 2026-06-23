@@ -1,0 +1,156 @@
+(function () {
+    const scripts = [
+        {name:"Ed-Shed Cheats",url:"https://raw.githubusercontent.com/eggman1243/Fun-Cool-Stuff/refs/heads/main/spellingshed"},
+        {name:"Robux Spoofer",url:"https://raw.githubusercontent.com/eggman1243/Fun-Cool-Stuff/refs/heads/main/robuxspoofer"},
+        {name:"Html Page Downloader",url:"https://raw.githubusercontent.com/eggman1243/Fun-Cool-Stuff/refs/heads/main/pagedownloader"},
+        {name:"Roblox Profile Troll",url:"https://raw.githubusercontent.com/eggman1243/Fun-Cool-Stuff/refs/heads/main/stupidprofileshowerthingy"}
+    ];
+
+    const gui=document.createElement("div");
+    gui.style.cssText="position:fixed;top:120px;left:120px;width:340px;background:#0f0f0f;color:#fff;border:1px solid #2a2a2a;border-radius:14px;z-index:999999;font-family:Arial;box-shadow:0 10px 25px rgba(0,0,0,0.6);animation:fadeIn .2s ease-out;user-select:none";
+
+    const style=document.createElement("style");
+    style.textContent=`
+    @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+    @keyframes fadeOut{from{opacity:1}to{opacity:0;transform:scale(.95)}}
+    button{transition:.15s ease}
+    button:hover{transform:scale(1.02)}
+    `;
+    document.head.appendChild(style);
+
+    const header=document.createElement("div");
+    header.style.cssText="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#1a1a1a;border-radius:14px 14px 0 0;cursor:move;user-select:none";
+
+    const title=document.createElement("div");
+    title.textContent='Client-Side Cheat Tool';
+    title.style.fontWeight="bold";
+
+    const controls=document.createElement("div");
+
+    const minBtn=document.createElement("button");
+    const closeBtn=document.createElement("button");
+    minBtn.textContent="—";
+    closeBtn.textContent="✕";
+
+    [minBtn,closeBtn].forEach(b=>{
+        b.style.cssText="margin-left:6px;background:#2b2b2b;color:#fff;border:none;border-radius:6px;padding:2px 6px;cursor:pointer";
+    });
+
+    controls.appendChild(minBtn);
+    controls.appendChild(closeBtn);
+    header.appendChild(title);
+    header.appendChild(controls);
+    gui.appendChild(header);
+
+    const main=document.createElement("div");
+    main.style.cssText="padding:16px;display:flex;flex-direction:column;gap:12px;user-select:none";
+
+    const status=document.createElement("div");
+    status.style.cssText="font-size:12px;color:#aaa";
+    status.textContent="Select a script";
+
+    const scriptsBox=document.createElement("div");
+    scriptsBox.style.cssText="display:flex;flex-direction:column;gap:10px";
+
+    const openBtn=document.createElement("button");
+    openBtn.textContent="Open Script";
+    openBtn.style.cssText="width:100%;background:#2a2a2a;color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer";
+
+    const guideBtn=document.createElement("button");
+    guideBtn.textContent="DevTools Guide";
+    guideBtn.style.cssText="width:100%;background:#1c1c1c;color:#fff;border:1px solid #333;border-radius:8px;padding:10px;cursor:pointer";
+
+    const guide=document.createElement("div");
+    guide.style.cssText="display:none;font-size:12px;color:#bbb;line-height:1.5;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:10px";
+
+    guide.innerHTML=
+        "<b>IMPORTANT:</b><br>"+
+        "1. Open the script in a new tab<br>"+
+        "2. Copy EVERYTHING (Ctrl + A then Ctrl + C)<br>"+
+        "3. Open DevTools (F12)<br>"+
+        "4. Go to Console<br>"+
+        "5. Paste and press Enter<br><br>"+
+        "<b>If paste is blocked:</b><br>"+
+        "Type: \"allow pasting\"<br>"+
+        "Press Enter, then paste again";
+
+    let guideOpen=false;
+    guideBtn.onclick=()=>{
+        guideOpen=!guideOpen;
+        guide.style.display=guideOpen?"block":"none";
+    };
+
+    main.appendChild(status);
+    scriptsBox.appendChild(openBtn);
+    scriptsBox.appendChild(guideBtn);
+    scriptsBox.appendChild(guide);
+    main.appendChild(scriptsBox);
+
+    let selected=null;
+
+    scripts.forEach(s=>{
+        const b=document.createElement("button");
+        b.textContent=s.name;
+        b.style.cssText="width:100%;padding:10px;background:#1b1b1b;color:#fff;border:1px solid #333;border-radius:10px;cursor:pointer;transition:.15s";
+
+        b.onclick=()=>{
+            if(selected===s){
+                selected=null;
+                status.textContent="Selection cleared";
+                openBtn.onclick=null;
+                b.style.background="#1b1b1b";
+                return;
+            }
+
+            selected=s;
+            status.textContent="Selected: "+s.name;
+            openBtn.onclick=()=>window.open(s.url,"_blank");
+
+            document.querySelectorAll("button").forEach(x=>{
+                if(x!==b && x.textContent===s.name) x.style.background="#1b1b1b";
+            });
+
+            b.style.background="#2a2a2a";
+        };
+
+        scriptsBox.appendChild(b);
+    });
+
+    const disclaimer=document.createElement("div");
+    disclaimer.textContent="Client-Side Only";
+    disclaimer.style.cssText="color:red;font-weight:bold;font-size:11px;text-align:center;margin-top:4px";
+
+    main.appendChild(disclaimer);
+    gui.appendChild(main);
+
+    let minimized=false;
+
+    minBtn.onclick=()=>{
+        minimized=!minimized;
+        main.style.display=minimized?"none":"flex";
+    };
+
+    closeBtn.onclick=()=>{
+        gui.style.animation="fadeOut .2s forwards";
+        setTimeout(()=>gui.remove(),200);
+    };
+
+    let drag=false,ox=0,oy=0;
+
+    header.onmousedown=e=>{
+        drag=true;
+        ox=e.clientX-gui.offsetLeft;
+        oy=e.clientY-gui.offsetTop;
+    };
+
+    document.onmousemove=e=>{
+        if(drag){
+            gui.style.left=e.clientX-ox+"px";
+            gui.style.top=e.clientY-oy+"px";
+        }
+    };
+
+    document.onmouseup=()=>drag=false;
+
+    document.body.appendChild(gui);
+})();
